@@ -125,7 +125,7 @@ class SDFRectPainter {
 		rectVertices.set(baseIndex + 64, bottom);
 	}
 
-    private inline function setRectBox(u: FastFloat, v: FastFloat): Void {
+	private inline function setRectBox(u: FastFloat, v: FastFloat): Void {
 		var baseIndex: Int = bufferIndex * vertexSize * 4;
 		rectVertices.set(baseIndex + 5, u);
 		rectVertices.set(baseIndex + 6, v);
@@ -211,7 +211,7 @@ class SDFRectPainter {
 
 		rectVertices.set(baseIndex + 78, b);
 		rectVertices.set(baseIndex + 79, s);
-    }
+	}
 
 	private function drawBuffer(): Void {
 		rectVertexBuffer.unlock(bufferIndex * 4);
@@ -226,18 +226,18 @@ class SDFRectPainter {
 		rectVertices = rectVertexBuffer.lock();
 	}
 
-    public inline function drawSDFRect(opacity: FastFloat, rCol:Color, bCol:Color,
-        bottomleftx: FastFloat, bottomlefty: FastFloat,
+	public inline function drawSDFRect(opacity: FastFloat, rCol:Color, bCol:Color,
+		bottomleftx: FastFloat, bottomlefty: FastFloat,
 		topleftx: FastFloat, toplefty: FastFloat,
 		toprightx: FastFloat, toprighty: FastFloat,
-        bottomrightx: FastFloat, bottomrighty: FastFloat,
-        u: FastFloat, v: FastFloat, c: CornerRadius, b: FastFloat, s: FastFloat): Void {
+		bottomrightx: FastFloat, bottomrighty: FastFloat,
+		u: FastFloat, v: FastFloat, c: CornerRadius, b: FastFloat, s: FastFloat): Void {
 		if (bufferIndex + 1 >= bufferSize) drawBuffer();
 
 		setRectColor(rCol.R, rCol.G, rCol.B, rCol.A * opacity, bCol.R, bCol.G, bCol.B);
 		setRectTexCoords(0, 0, u, v);
 		setRectVertices(bottomleftx, bottomlefty, topleftx, toplefty, toprightx, toprighty, bottomrightx, bottomrighty);
-        setRectBox(u / 2, v / 2);
+		setRectBox(u / 2, v / 2);
 		setCorner(c);
 		setBorderSmooth(b, s);
 
@@ -416,11 +416,11 @@ class SDFCirclePainter {
 		rectVertices = rectVertexBuffer.lock();
 	}
 
-    public inline function drawSDFCircle(opacity: FastFloat, rCol:Color, bCol:Color,
-        bottomleftx: FastFloat, bottomlefty: FastFloat,
+	public inline function drawSDFCircle(opacity: FastFloat, rCol:Color, bCol:Color,
+		bottomleftx: FastFloat, bottomlefty: FastFloat,
 		topleftx: FastFloat, toplefty: FastFloat,
 		toprightx: FastFloat, toprighty: FastFloat,
-        bottomrightx: FastFloat, bottomrighty: FastFloat, b: FastFloat, s: FastFloat): Void {
+		bottomrightx: FastFloat, bottomrighty: FastFloat, b: FastFloat, s: FastFloat): Void {
 		if (bufferIndex + 1 >= bufferSize) drawBuffer();
 
 		setRectColor(rCol.R, rCol.G, rCol.B, rCol.A * opacity, bCol.R, bCol.G, bCol.B);
@@ -438,14 +438,14 @@ class SDFCirclePainter {
 
 
 class SDFPainter extends kha.graphics4.Graphics2 {
-    private var sdfRectPainter: SDFRectPainter;
-    private var sdfCirclePainter: SDFCirclePainter;
+	private var sdfRectPainter: SDFRectPainter;
+	private var sdfCirclePainter: SDFCirclePainter;
 
 	public override function new(canvas: Canvas) {
 		super(canvas);
 	}
 
-    public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
+	public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
 		imagePainter.end();
 		textPainter.end();
 		coloredPainter.end();
@@ -454,10 +454,10 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		var p1 = transformation.multvec(new FastVector2(x, y + height));
 		var p2 = transformation.multvec(new FastVector2(x, y));
 		var p3 = transformation.multvec(new FastVector2(x + width, y));
-        var p4 = transformation.multvec(new FastVector2(x + width, y + height));
-        var w = p3.sub(p2).length;
-        var h = p1.sub(p2).length;
-        var u = w / Math.max(w, h);
+		var p4 = transformation.multvec(new FastVector2(x + width, y + height));
+		var w = p3.sub(p2).length;
+		var h = p1.sub(p2).length;
+		var u = w / Math.max(w, h);
 		var v = h / Math.max(w, h);
 		var f = (u >= v ? u / w : v / h) * Math.max(w / width, h / height);
 		corner.br = corner.br != null ? corner.br : corner.tr;
@@ -480,78 +480,78 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		var p2 = transformation.multvec(new FastVector2(x - r, y - r));
 		var p3 = transformation.multvec(new FastVector2(x + r, y - r));
 		var p4 = transformation.multvec(new FastVector2(x + r, y + r));
-        var w = p3.sub(p2).length;
-        var h = p1.sub(p2).length;
-        var u = w / Math.max(w, h);
+		var w = p3.sub(p2).length;
+		var h = p1.sub(p2).length;
+		var u = w / Math.max(w, h);
 		var v = h / Math.max(w, h);
 		var f = (u >= v ? u / w : v / h) * Math.max(w / (2 * r), h / (2 * r));
 		sdfCirclePainter.drawSDFCircle(opacity, color, borderColor, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, border * f, smooth * f);
 	}
 
-    // Overrides
+	// Overrides
 	public override function flush(): Void {
-        super.flush();
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
+		super.flush();
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
 	}
 
-    private override function setProjection(): Void {
-        super.setProjection();
+	private override function setProjection(): Void {
+		super.setProjection();
 		sdfRectPainter = new SDFRectPainter(g);
 		sdfRectPainter.setProjection(projectionMatrix);
 		sdfCirclePainter = new SDFCirclePainter(g);
 		sdfCirclePainter.setProjection(projectionMatrix);
-    }
+	}
 
 	public override function drawImage(img: kha.Image, x: FastFloat, y: FastFloat): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawImage(img, x, y);
-    }
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawImage(img, x, y);
+	}
 
 	public override function drawScaledSubImage(img: kha.Image, sx: FastFloat, sy: FastFloat, sw: FastFloat, sh: FastFloat, dx: FastFloat, dy: FastFloat, dw: FastFloat, dh: FastFloat): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawScaledSubImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-    }
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawScaledSubImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+	}
 
-    public override function drawRect(x: Float, y: Float, width: Float, height: Float, strength: Float = 1.0): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawRect(x, y, width, height, strength);
-    }
+	public override function drawRect(x: Float, y: Float, width: Float, height: Float, strength: Float = 1.0): Void {
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawRect(x, y, width, height, strength);
+	}
 
 	public override function fillRect(x: Float, y: Float, width: Float, height: Float): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.fillRect(x, y, width, height);
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.fillRect(x, y, width, height);
 	}
 
 	public override function drawString(text: String, x: Float, y: Float): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawString(text, x, y);
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawString(text, x, y);
 	}
 
 	public override function drawCharacters(text: Array<Int>, start: Int, length: Int, x: Float, y: Float): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawCharacters(text, start, length, x, y);
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawCharacters(text, start, length, x, y);
 	}
 
 	public override function drawLine(x1: Float, y1: Float, x2: Float, y2: Float, strength: Float = 1.0): Void {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.drawLine(x1, y1, x2, y2, strength);
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.drawLine(x1, y1, x2, y2, strength);
 	}
 
 	public override function fillTriangle(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
-        sdfRectPainter.end();
-        sdfCirclePainter.end();
-        super.fillTriangle(x1, y1, x2, y2, x3, y3);
+		sdfRectPainter.end();
+		sdfCirclePainter.end();
+		super.fillTriangle(x1, y1, x2, y2, x3, y3);
 	}
 
-    override private function setPipeline(pipeline: PipelineState): Void {
+	override private function setPipeline(pipeline: PipelineState): Void {
 		if (pipeline == lastPipeline) {
 			return;
 		}
@@ -580,14 +580,14 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 
 	public static function createSDFRectVertexStructure(): VertexStructure {
 		var structure = new VertexStructure();
-        structure.add("pos", VertexData.Float3);
-        structure.add("tex", VertexData.Float2);
-        structure.add("box", VertexData.Float2);
-        structure.add("rCol", VertexData.Float4);
-        structure.add("bCol", VertexData.Float3);
-        structure.add("corner", VertexData.Float4);
-        structure.add("border", VertexData.Float1);
-        structure.add("smth", VertexData.Float1);
+		structure.add("pos", VertexData.Float3);
+		structure.add("tex", VertexData.Float2);
+		structure.add("box", VertexData.Float2);
+		structure.add("rCol", VertexData.Float4);
+		structure.add("bCol", VertexData.Float3);
+		structure.add("corner", VertexData.Float4);
+		structure.add("border", VertexData.Float1);
+		structure.add("smth", VertexData.Float1);
 		return structure;
 	}
 
@@ -605,12 +605,12 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 
 	public static function createSDFCircleVertexStructure(): VertexStructure {
 		var structure = new VertexStructure();
-        structure.add("pos", VertexData.Float3);
-        structure.add("tex", VertexData.Float2);
-        structure.add("rCol", VertexData.Float4);
-        structure.add("bCol", VertexData.Float3);
-        structure.add("border", VertexData.Float1);
-        structure.add("smth", VertexData.Float1);
+		structure.add("pos", VertexData.Float3);
+		structure.add("tex", VertexData.Float2);
+		structure.add("rCol", VertexData.Float4);
+		structure.add("bCol", VertexData.Float3);
+		structure.add("border", VertexData.Float1);
+		structure.add("smth", VertexData.Float1);
 		return structure;
 	}
 
