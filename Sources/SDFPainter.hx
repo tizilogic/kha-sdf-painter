@@ -64,7 +64,7 @@ class SDFRectPainter {
 		if (standardSDFRectPipeline == null) {
 			var pipeline = SDFPainter.createSDFRectPipeline(structure);
 			pipeline.compile();
-			standardSDFRectPipeline = new PipelineCache(pipeline, false);
+			standardSDFRectPipeline = new SimplePipelineCache(pipeline, false);
 		}
 	}
 
@@ -214,11 +214,12 @@ class SDFRectPainter {
 	}
 
 	private function drawBuffer(): Void {
+		var pipeline = myPipeline.get(null, Depth24Stencil8);
 		rectVertexBuffer.unlock(bufferIndex * 4);
-		g.setPipeline(myPipeline.pipeline);
+		g.setPipeline(pipeline.pipeline);
 		g.setVertexBuffer(rectVertexBuffer);
 		g.setIndexBuffer(indexBuffer);
-		g.setMatrix(myPipeline.projectionLocation, projectionMatrix);
+		g.setMatrix(pipeline.projectionLocation, projectionMatrix);
 
 		g.drawIndexedVertices(0, bufferIndex * 3 * 2);
 
@@ -292,7 +293,7 @@ class SDFCirclePainter {
 		if (standardSDFCirclePipeline == null) {
 			var pipeline = SDFPainter.createSDFCirclePipeline(structure);
 			pipeline.compile();
-			standardSDFCirclePipeline = new PipelineCache(pipeline, false);
+			standardSDFCirclePipeline = new SimplePipelineCache(pipeline, false);
 		}
 	}
 
@@ -404,11 +405,12 @@ class SDFCirclePainter {
     }
 
 	private function drawBuffer(): Void {
+		var pipeline = myPipeline.get(null, Depth24Stencil8);
 		rectVertexBuffer.unlock(bufferIndex * 4);
-		g.setPipeline(myPipeline.pipeline);
+		g.setPipeline(pipeline.pipeline);
 		g.setVertexBuffer(rectVertexBuffer);
 		g.setIndexBuffer(indexBuffer);
-		g.setMatrix(myPipeline.projectionLocation, projectionMatrix);
+		g.setMatrix(pipeline.projectionLocation, projectionMatrix);
 
 		g.drawIndexedVertices(0, bufferIndex * 3 * 2);
 
@@ -567,7 +569,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		else {
 			var cache = pipelineCache[pipeline];
 			if (cache == null) {
-				cache = new PipelineCache(pipeline, true);
+				cache = new SimplePipelineCache(pipeline, true);
 				pipelineCache[pipeline] = cache;
 			}
 			imagePainter.pipeline = cache;
