@@ -439,9 +439,197 @@ class SDFCirclePainter {
 }
 
 
+class SDFLinePainter {
+	var projectionMatrix: FastMatrix4;
+	static var standardSDFLinePipeline: PipelineCache = null;
+	static var structure: VertexStructure = null;
+	static inline var bufferSize: Int = 300;
+	static inline var vertexSize: Int = 12;
+	static var bufferIndex: Int;
+	static var rectVertexBuffer: VertexBuffer;
+	static var rectVertices: Float32Array;
+	static var indexBuffer: IndexBuffer;
+	var g: Graphics;
+	var myPipeline: PipelineCache = null;
+	public var pipeline(get, set): PipelineCache;
+
+	public function new(g4: Graphics) {
+		this.g = g4;
+		bufferIndex = 0;
+		initShaders();
+		myPipeline = standardSDFLinePipeline;
+		initBuffers();
+	}
+
+	private function get_pipeline(): PipelineCache {
+		return myPipeline;
+	}
+
+	private function set_pipeline(pipe: PipelineCache): PipelineCache {
+		myPipeline = pipe != null ? pipe : standardSDFLinePipeline;
+		return myPipeline;
+	}
+
+	public function setProjection(projectionMatrix: FastMatrix4): Void {
+		this.projectionMatrix = projectionMatrix;
+	}
+
+	private static function initShaders(): Void {
+		if (structure == null) {
+			structure = SDFPainter.createSDFLineVertexStructure();
+		}
+		if (standardSDFLinePipeline == null) {
+			var pipeline = SDFPainter.createSDFLinePipeline(structure);
+			pipeline.compile();
+			standardSDFLinePipeline = new SimplePipelineCache(pipeline, false);
+		}
+	}
+
+	function initBuffers(): Void {
+		if (rectVertexBuffer == null) {
+			rectVertexBuffer = new VertexBuffer(bufferSize * 4, structure, Usage.DynamicUsage);
+			rectVertices = rectVertexBuffer.lock();
+
+			indexBuffer = new IndexBuffer(bufferSize * 3 * 2, Usage.StaticUsage);
+			var indices = indexBuffer.lock();
+			for (i in 0...bufferSize) {
+				indices[i * 3 * 2 + 0] = i * 4 + 0;
+				indices[i * 3 * 2 + 1] = i * 4 + 1;
+				indices[i * 3 * 2 + 2] = i * 4 + 2;
+				indices[i * 3 * 2 + 3] = i * 4 + 0;
+				indices[i * 3 * 2 + 4] = i * 4 + 2;
+				indices[i * 3 * 2 + 5] = i * 4 + 3;
+			}
+			indexBuffer.unlock();
+		}
+	}
+
+	private inline function setRectVertices(
+		bottomleftx: FastFloat, bottomlefty: FastFloat,
+		topleftx: FastFloat, toplefty: FastFloat,
+		toprightx: FastFloat, toprighty: FastFloat,
+		bottomrightx: FastFloat, bottomrighty: FastFloat): Void {
+		var baseIndex: Int = bufferIndex * vertexSize * 4;
+		rectVertices.set(baseIndex + 0, bottomleftx);
+		rectVertices.set(baseIndex + 1, bottomlefty);
+		rectVertices.set(baseIndex + 2, -5.0);
+
+		rectVertices.set(baseIndex + 12, topleftx);
+		rectVertices.set(baseIndex + 13, toplefty);
+		rectVertices.set(baseIndex + 14, -5.0);
+
+		rectVertices.set(baseIndex + 24, toprightx);
+		rectVertices.set(baseIndex + 25, toprighty);
+		rectVertices.set(baseIndex + 26, -5.0);
+
+		rectVertices.set(baseIndex + 36, bottomrightx);
+		rectVertices.set(baseIndex + 37, bottomrighty);
+		rectVertices.set(baseIndex + 38, -5.0);
+	}
+
+	private inline function setRectTexCoords(left: FastFloat, top: FastFloat, right: FastFloat, bottom: FastFloat): Void {
+		var baseIndex: Int = bufferIndex * vertexSize * 4;
+		rectVertices.set(baseIndex +  3, left);
+		rectVertices.set(baseIndex +  4, bottom);
+
+		rectVertices.set(baseIndex + 15, left);
+		rectVertices.set(baseIndex + 16, top);
+
+		rectVertices.set(baseIndex + 27, right);
+		rectVertices.set(baseIndex + 28, top);
+
+		rectVertices.set(baseIndex + 39, right);
+		rectVertices.set(baseIndex + 40, bottom);
+	}
+
+	private inline function setRectColor(r: FastFloat, g: FastFloat, b: FastFloat, a: FastFloat): Void {
+		var baseIndex: Int = bufferIndex * vertexSize * 4;
+		rectVertices.set(baseIndex + 5, r);
+		rectVertices.set(baseIndex + 6, g);
+		rectVertices.set(baseIndex + 7, b);
+		rectVertices.set(baseIndex + 8, a);
+
+		rectVertices.set(baseIndex + 17, r);
+		rectVertices.set(baseIndex + 18, g);
+		rectVertices.set(baseIndex + 19, b);
+		rectVertices.set(baseIndex + 20, a);
+
+		rectVertices.set(baseIndex + 29, r);
+		rectVertices.set(baseIndex + 30, g);
+		rectVertices.set(baseIndex + 31, b);
+		rectVertices.set(baseIndex + 32, a);
+
+		rectVertices.set(baseIndex + 41, r);
+		rectVertices.set(baseIndex + 42, g);
+		rectVertices.set(baseIndex + 43, b);
+		rectVertices.set(baseIndex + 44, a);
+    }
+
+    private inline function setDim(x: FastFloat, y: FastFloat): Void {
+		var baseIndex: Int = bufferIndex * vertexSize * 4;
+		rectVertices.set(baseIndex + 9, x);
+		rectVertices.set(baseIndex + 10, y);
+
+		rectVertices.set(baseIndex + 21, x);
+		rectVertices.set(baseIndex + 22, y);
+
+		rectVertices.set(baseIndex + 33, x);
+		rectVertices.set(baseIndex + 34, y);
+
+		rectVertices.set(baseIndex + 45, x);
+		rectVertices.set(baseIndex + 46, y);
+    }
+
+    private inline function setSmooth(sm: FastFloat): Void {
+		var baseIndex: Int = bufferIndex * vertexSize * 4;
+		rectVertices.set(baseIndex + 11, sm);
+		rectVertices.set(baseIndex + 23, sm);
+		rectVertices.set(baseIndex + 35, sm);
+		rectVertices.set(baseIndex + 47, sm);
+    }
+
+	private function drawBuffer(): Void {
+		var pipeline = myPipeline.get(null, Depth24Stencil8);
+		rectVertexBuffer.unlock(bufferIndex * 4);
+		g.setPipeline(pipeline.pipeline);
+		g.setVertexBuffer(rectVertexBuffer);
+		g.setIndexBuffer(indexBuffer);
+		g.setMatrix(pipeline.projectionLocation, projectionMatrix);
+
+		g.drawIndexedVertices(0, bufferIndex * 3 * 2);
+
+		bufferIndex = 0;
+		rectVertices = rectVertexBuffer.lock();
+	}
+
+	public inline function drawSDFLine(opacity: FastFloat, color:Color,
+		bottomleftx: FastFloat, bottomlefty: FastFloat,
+		topleftx: FastFloat, toplefty: FastFloat,
+		toprightx: FastFloat, toprighty: FastFloat,
+		bottomrightx: FastFloat, bottomrighty: FastFloat,
+		u: FastFloat, v: FastFloat, smth: FastFloat): Void {
+
+		if (bufferIndex + 1 >= bufferSize) drawBuffer();
+
+		setRectColor(color.R, color.G, color.B, color.A * opacity);
+		setRectTexCoords(0, 0, u, v);
+		setRectVertices(bottomleftx, bottomlefty, topleftx, toplefty, toprightx, toprighty, bottomrightx, bottomrighty);
+		setDim(u / 2.0, v / 2.0);
+		setSmooth(smth);
+
+		++bufferIndex;
+	}
+
+	public function end(): Void {
+		if (bufferIndex > 0) drawBuffer();
+	}
+}
+
+
 class SDFPainter extends kha.graphics4.Graphics2 {
 	private var sdfRectPainter: SDFRectPainter;
 	private var sdfCirclePainter: SDFCirclePainter;
+	private var sdfLinePainter: SDFLinePainter;
 
 	public override function new(canvas: Canvas) {
 		super(canvas);
@@ -452,6 +640,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		textPainter.end();
 		coloredPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 
 		var p1 = transformation.multvec(new FastVector2(x, y + height));
 		var p2 = transformation.multvec(new FastVector2(x, y));
@@ -477,6 +666,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		textPainter.end();
 		coloredPainter.end();
 		sdfRectPainter.end();
+		sdfLinePainter.end();
 
 		var p1 = transformation.multvec(new FastVector2(x - r, y + r));
 		var p2 = transformation.multvec(new FastVector2(x - r, y - r));
@@ -490,11 +680,44 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		sdfCirclePainter.drawSDFCircle(opacity, color, borderColor, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, border * f, smooth * f);
 	}
 
+	public function sdfLine(x1: FastFloat, y1: FastFloat, x2: FastFloat, y2: FastFloat, strength: FastFloat, smooth: FastFloat): Void {
+		imagePainter.end();
+		textPainter.end();
+		coloredPainter.end();
+		sdfCirclePainter.end();
+		sdfRectPainter.end();
+
+		var a = x1 <= x2 ? new FastVector2(x1, y1) : new FastVector2(x2, y2);
+		var b = x1 <= x2 ? new FastVector2(x2, y2) : new FastVector2(x1, y1);
+		var fw = b.sub(a).normalized();
+		var bw = fw.mult(-1.0);
+		var up = new FastVector2(fw.y, -fw.x);
+		var down = up.mult(-1.0);
+		var hs = strength / 2.0;
+		fw = fw.mult(hs);
+		bw = bw.mult(hs);
+		up = up.mult(hs);
+		down = down.mult(hs);
+
+		var p1 = transformation.multvec(a.add(down).add(bw));
+		var p2 = transformation.multvec(a.add(up).add(bw));
+		var p3 = transformation.multvec(b.add(up).add(fw));
+		var p4 = transformation.multvec(b.add(down).add(fw));
+		var w = p3.sub(p2).length;
+		var h = p1.sub(p2).length;
+		var u = w / Math.max(w, h);
+		var v = h / Math.max(w, h);
+		var f = (u >= v ? u / w : v / h) * Math.max(w / a.sub(b).length, h / strength);
+
+		sdfLinePainter.drawSDFLine(opacity, color, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, u, v, smooth * f);
+	}
+
 	// Overrides
 	public override function flush(): Void {
 		super.flush();
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 	}
 
 	private override function setProjection(): Void {
@@ -503,53 +726,63 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		sdfRectPainter.setProjection(projectionMatrix);
 		sdfCirclePainter = new SDFCirclePainter(g);
 		sdfCirclePainter.setProjection(projectionMatrix);
+		sdfLinePainter = new SDFLinePainter(g);
+		sdfLinePainter.setProjection(projectionMatrix);
 	}
 
 	public override function drawImage(img: kha.Image, x: FastFloat, y: FastFloat): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawImage(img, x, y);
 	}
 
 	public override function drawScaledSubImage(img: kha.Image, sx: FastFloat, sy: FastFloat, sw: FastFloat, sh: FastFloat, dx: FastFloat, dy: FastFloat, dw: FastFloat, dh: FastFloat): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawScaledSubImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 	}
 
 	public override function drawRect(x: Float, y: Float, width: Float, height: Float, strength: Float = 1.0): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawRect(x, y, width, height, strength);
 	}
 
 	public override function fillRect(x: Float, y: Float, width: Float, height: Float): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.fillRect(x, y, width, height);
 	}
 
 	public override function drawString(text: String, x: Float, y: Float): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawString(text, x, y);
 	}
 
 	public override function drawCharacters(text: Array<Int>, start: Int, length: Int, x: Float, y: Float): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawCharacters(text, start, length, x, y);
 	}
 
 	public override function drawLine(x1: Float, y1: Float, x2: Float, y2: Float, strength: Float = 1.0): Void {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.drawLine(x1, y1, x2, y2, strength);
 	}
 
 	public override function fillTriangle(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
 		sdfRectPainter.end();
 		sdfCirclePainter.end();
+		sdfLinePainter.end();
 		super.fillTriangle(x1, y1, x2, y2, x3, y3);
 	}
 
@@ -565,6 +798,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 			textPainter.pipeline = null;
 			sdfRectPainter.pipeline = null;
 			sdfCirclePainter.pipeline = null;
+			sdfLinePainter.pipeline = null;
 		}
 		else {
 			var cache = pipelineCache[pipeline];
@@ -577,6 +811,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 			textPainter.pipeline = cache;
 			sdfRectPainter.pipeline = cache;
 			sdfCirclePainter.pipeline = cache;
+			sdfLinePainter.pipeline = cache;
 		}
 	}
 
@@ -620,6 +855,28 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		var shaderPipeline = new PipelineState();
 		shaderPipeline.fragmentShader = Shaders.painter_sdf_circle_frag;
 		shaderPipeline.vertexShader = Shaders.painter_sdf_circle_vert;
+		shaderPipeline.inputLayout = [structure];
+		shaderPipeline.blendSource = BlendingFactor.BlendOne;
+		shaderPipeline.blendDestination = BlendingFactor.InverseSourceAlpha;
+		shaderPipeline.alphaBlendSource = BlendingFactor.BlendOne;
+		shaderPipeline.alphaBlendDestination = BlendingFactor.InverseSourceAlpha;
+		return shaderPipeline;
+	}
+
+	public static function createSDFLineVertexStructure(): VertexStructure {
+		var structure = new VertexStructure();
+		structure.add("pos", VertexData.Float3);
+		structure.add("tex", VertexData.Float2);
+		structure.add("color", VertexData.Float4);
+		structure.add("dim", VertexData.Float2);
+		structure.add("smth", VertexData.Float1);
+		return structure;
+	}
+
+	public static function createSDFLinePipeline(structure: VertexStructure): PipelineState {
+		var shaderPipeline = new PipelineState();
+		shaderPipeline.fragmentShader = Shaders.painter_sdf_line_frag;
+		shaderPipeline.vertexShader = Shaders.painter_sdf_line_vert;
 		shaderPipeline.inputLayout = [structure];
 		shaderPipeline.blendSource = BlendingFactor.BlendOne;
 		shaderPipeline.blendDestination = BlendingFactor.InverseSourceAlpha;
