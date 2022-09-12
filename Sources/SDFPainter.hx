@@ -21,7 +21,6 @@ import kha.math.FastMatrix4;
 
 typedef CornerRadius = {tr:FastFloat, ?br:Null<FastFloat>, ?tl:Null<FastFloat>, ?bl:Null<FastFloat>};
 
-
 class SDFRectPainter {
 	var projectionMatrix: FastMatrix4;
 	static var standardSDFRectPipeline: PipelineCache = null;
@@ -140,35 +139,39 @@ class SDFRectPainter {
 		rectVertices.set(baseIndex + 66, v);
 	}
 
-	private inline function setRectColor(r: FastFloat, g: FastFloat, b: FastFloat, a: FastFloat, br: FastFloat, bg: FastFloat, bb: FastFloat): Void {
+	private inline function setRectColor(blColor: Color, tlColor: Color, trColor: Color, brColor: Color, a: FastFloat, br: FastFloat, bg: FastFloat, bb: FastFloat): Void {
 		var baseIndex: Int = bufferIndex * vertexSize * 4;
-		rectVertices.set(baseIndex + 7, r);
-		rectVertices.set(baseIndex + 8, g);
-		rectVertices.set(baseIndex + 9, b);
+		// Bottom Left
+		rectVertices.set(baseIndex + 7, blColor.R);
+		rectVertices.set(baseIndex + 8, blColor.G);
+		rectVertices.set(baseIndex + 9, blColor.B);
 		rectVertices.set(baseIndex + 10, a);
 		rectVertices.set(baseIndex + 11, br);
 		rectVertices.set(baseIndex + 12, bg);
 		rectVertices.set(baseIndex + 13, bb);
 
-		rectVertices.set(baseIndex + 27, r);
-		rectVertices.set(baseIndex + 28, g);
-		rectVertices.set(baseIndex + 29, b);
+		// Top Left
+		rectVertices.set(baseIndex + 27, tlColor.R);
+		rectVertices.set(baseIndex + 28, tlColor.G);
+		rectVertices.set(baseIndex + 29, tlColor.B);
 		rectVertices.set(baseIndex + 30, a);
 		rectVertices.set(baseIndex + 31, br);
 		rectVertices.set(baseIndex + 32, bg);
 		rectVertices.set(baseIndex + 33, bb);
 
-		rectVertices.set(baseIndex + 47, r);
-		rectVertices.set(baseIndex + 48, g);
-		rectVertices.set(baseIndex + 49, b);
+		// Top Right
+		rectVertices.set(baseIndex + 47, trColor.R);
+		rectVertices.set(baseIndex + 48, trColor.G);
+		rectVertices.set(baseIndex + 49, trColor.B);
 		rectVertices.set(baseIndex + 50, a);
 		rectVertices.set(baseIndex + 51, br);
 		rectVertices.set(baseIndex + 52, bg);
 		rectVertices.set(baseIndex + 53, bb);
 
-		rectVertices.set(baseIndex + 67, r);
-		rectVertices.set(baseIndex + 68, g);
-		rectVertices.set(baseIndex + 69, b);
+		// Bottom Right
+		rectVertices.set(baseIndex + 67, brColor.R);
+		rectVertices.set(baseIndex + 68, brColor.G);
+		rectVertices.set(baseIndex + 69, brColor.B);
 		rectVertices.set(baseIndex + 70, a);
 		rectVertices.set(baseIndex + 71, br);
 		rectVertices.set(baseIndex + 72, bg);
@@ -227,15 +230,16 @@ class SDFRectPainter {
 		rectVertices = rectVertexBuffer.lock();
 	}
 
-	public inline function drawSDFRect(opacity: FastFloat, rCol:Color, bCol:Color,
-		bottomleftx: FastFloat, bottomlefty: FastFloat,
+	public inline function drawSDFRect(opacity: FastFloat, 
+		bottomleftColor: Color, topleftColor: Color, toprightColor: Color, bottomrightColor: Color,
+		bCol:Color, bottomleftx: FastFloat, bottomlefty: FastFloat,
 		topleftx: FastFloat, toplefty: FastFloat,
 		toprightx: FastFloat, toprighty: FastFloat,
 		bottomrightx: FastFloat, bottomrighty: FastFloat,
 		u: FastFloat, v: FastFloat, c: CornerRadius, b: FastFloat, s: FastFloat): Void {
 		if (bufferIndex + 1 >= bufferSize) drawBuffer();
-
-		setRectColor(rCol.R, rCol.G, rCol.B, rCol.A * opacity, bCol.R, bCol.G, bCol.B);
+		
+		setRectColor(bottomleftColor, topleftColor, toprightColor, bottomrightColor, opacity, bCol.R, bCol.G, bCol.B);
 		setRectTexCoords(0, 0, u, v);
 		setRectVertices(bottomleftx, bottomlefty, topleftx, toplefty, toprightx, toprighty, bottomrightx, bottomrighty);
 		setRectBox(u / 2, v / 2);
@@ -635,7 +639,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		super(canvas);
 	}
 
-	public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
+	public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, bottomleftColor, topleftColor, toprightColor, bottomrightColor, corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
 		imagePainter.end();
 		textPainter.end();
 		coloredPainter.end();
@@ -658,7 +662,7 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		corner.br *= f;
 		corner.tl *= f;
 		corner.bl *= f;
-		sdfRectPainter.drawSDFRect(opacity, color, borderColor, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, u, v, corner, border * f, smooth * f);
+		sdfRectPainter.drawSDFRect(opacity, bottomleftColor, topleftColor, toprightColor, bottomrightColor, borderColor, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, u, v, corner, border * f, smooth * f);
 	}
 
 	public function sdfCircle(x: FastFloat, y: FastFloat, r: FastFloat, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
