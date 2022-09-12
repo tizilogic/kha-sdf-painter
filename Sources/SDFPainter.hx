@@ -639,13 +639,20 @@ class SDFPainter extends kha.graphics4.Graphics2 {
 		super(canvas);
 	}
 
-	public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, bottomleftColor, topleftColor, toprightColor, bottomrightColor, corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat): Void {
+	public function sdfRect(x: FastFloat, y: FastFloat, width: FastFloat, height: FastFloat, 
+			corner: CornerRadius, border: FastFloat, borderColor: Color, smooth: FastFloat,
+			?bottomleftColor: Color, ?topleftColor: Color, 
+			?toprightColor: Color, ?bottomrightColor: Color): Void {
 		imagePainter.end();
 		textPainter.end();
 		coloredPainter.end();
 		sdfCirclePainter.end();
 		sdfLinePainter.end();
 
+		if (bottomleftColor == null && topleftColor == null && 
+				toprightColor == null && bottomrightColor == null) {
+			bottomleftColor = topleftColor = toprightColor = bottomrightColor = color;
+		}
 		var p1 = transformation.multvec(new FastVector2(x, y + height));
 		var p2 = transformation.multvec(new FastVector2(x, y));
 		var p3 = transformation.multvec(new FastVector2(x + width, y));
